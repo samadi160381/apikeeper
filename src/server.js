@@ -3,9 +3,13 @@ import 'dotenv/config';
 import { keysRouter } from './routes/keys.js';
 import { usageRouter } from './routes/usage.js';
 import { exampleRouter } from './routes/example.js';
+import { matchesRouter } from './routes/matches.js';
+
 
 const app = express();
 app.use(express.json());
+app.use(express.static('website'));
+
 
 // CORS: allows the Apikeeper website (a separate origin) to call this API
 // from the browser. Locked to GET/POST/DELETE and the two custom headers
@@ -25,6 +29,8 @@ app.use('/dashboard/usage', usageRouter);
 
 // --- Public API: consumers call these using their API key. ---
 app.use('/v1', exampleRouter);
+app.use('/v1', matchesRouter);
+
 
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
