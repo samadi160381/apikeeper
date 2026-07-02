@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Get your API key — Apikeeper</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="brand"><span class="dot"></span> Apikeeper</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="docs.html">Docs</a></li>
+      <li><a href="pricing.html">Pricing</a></li>
+      <li><a href="dashboard.html">Dashboard</a></li>
+    </ul>
+    <div class="nav-cta">
+      <a href="signup.html" class="btn btn-amber" aria-current="page">Get API key</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" style="padding: 3.5rem 0 2rem;">
+  <div class="wrap">
+    <span class="eyebrow">// get started</span>
+    <h1 style="font-size: clamp(2.2rem, 4.5vw, 3.4rem);">Create your key</h1>
+    <p class="lede">Free tier, no card required. Your key is shown once — save it immediately.</p>
+  </div>
+</header>
+
+<section style="padding-top: 0;">
+  <div class="wrap">
+
+    <div class="panel" id="server-panel">
+      <h3>Server address</h3>
+      <p style="font-size: 0.85rem;">Point this at your running Apikeeper backend (e.g. your Codespace's forwarded URL for port 3000, or your real domain once deployed).</p>
+      <div class="field">
+        <label for="base-url">API base URL</label>
+        <input type="url" id="base-url" placeholder="https://your-server-url.app.github.dev">
+      </div>
+      <button class="btn btn-ghost" id="save-url">Save address</button>
+      <div id="server-msg"></div>
+    </div>
+
+    <div class="panel" style="margin-top: 1.5rem;">
+      <h3>Your details</h3>
+      <form id="signup-form">
+        <div class="field">
+          <label for="email">Email</label>
+          <input type="email" id="email" required placeholder="you@example.com">
+        </div>
+        <div class="field">
+          <label for="keyname">Key name</label>
+          <input type="text" id="keyname" value="My first key">
+        </div>
+        <button type="submit" class="btn btn-amber btn-block">Create my API key</button>
+      </form>
+      <div id="signup-msg"></div>
+      <div id="key-output"></div>
+    </div>
+
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 Apikeeper</span>
+    <span class="mono">Built on Apikeeper's own API</span>
+  </div>
+</footer>
+
+<script src="js/api.js"></script>
+<script>
+  const baseUrlInput = document.getElementById('base-url');
+  const serverMsg = document.getElementById('server-msg');
+  const emailInput = document.getElementById('email');
+
+  baseUrlInput.value = Apikeeper.getBaseUrl();
+  emailInput.value = Apikeeper.getEmail();
+
+  document.getElementById('save-url').addEventListener('click', () => {
+    if (!baseUrlInput.value) return;
+    Apikeeper.setBaseUrl(baseUrlInput.value);
+    serverMsg.innerHTML = '<div class="msg success">Saved. This browser will now talk to that server.</div>';
+  });
+
+  document.getElementById('signup-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('signup-msg');
+    const output = document.getElementById('key-output');
+    msg.innerHTML = '';
+    output.innerHTML = '';
+
+    const email = emailInput.value.trim();
+    const name = document.getElementById('keyname').value.trim() || 'Default key';
+
+    try {
+      Apikeeper.setEmail(email);
+      const result = await Apikeeper.createKey(email, { name, scopes: ['read', 'write'] });
+      msg.innerHTML = '<div class="msg success">Key created. Copy it now — it will not be shown again.</div>';
+      output.innerHTML = `<div class="key-reveal">${result.key}</div>
+        <a href="dashboard.html" class="btn btn-ghost btn-block">Go to dashboard</a>`;
+    } catch (err) {
+      msg.innerHTML = `<div class="msg error">${err.message}</div>`;
+    }
+  });
+</script>
+
+</body>
+</html>

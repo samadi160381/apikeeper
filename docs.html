@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docs — Apikeeper</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="brand"><span class="dot"></span> Apikeeper</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="docs.html" aria-current="page">Docs</a></li>
+      <li><a href="pricing.html">Pricing</a></li>
+      <li><a href="dashboard.html">Dashboard</a></li>
+    </ul>
+    <div class="nav-cta">
+      <a href="signup.html" class="btn btn-amber">Get API key</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" style="padding: 3.5rem 0 2.5rem;">
+  <div class="wrap">
+    <span class="eyebrow">// documentation</span>
+    <h1 style="font-size: clamp(2.2rem, 4.5vw, 3.4rem);">Quickstart</h1>
+    <p class="lede">Three steps to your first authenticated request.</p>
+  </div>
+</header>
+
+<section style="padding-top: 0;">
+  <div class="wrap">
+    <div class="grid-2" style="grid-template-columns: 2fr 3fr; gap: 2rem;">
+      <div>
+        <div class="card" style="margin-bottom: 1.2rem;">
+          <span class="num">01</span>
+          <h3>Create a key</h3>
+          <p>Sign up and generate a key from the dashboard. It's shown once — copy it immediately.</p>
+        </div>
+        <div class="card" style="margin-bottom: 1.2rem;">
+          <span class="num">02</span>
+          <h3>Authenticate</h3>
+          <p>Send it as a bearer token on every request.</p>
+        </div>
+        <div class="card">
+          <span class="num">03</span>
+          <h3>Read the response</h3>
+          <p>Check <code>X-RateLimit-Remaining</code> and <code>X-Usage-Count</code> headers to track your standing.</p>
+        </div>
+      </div>
+      <div>
+        <pre><code>curl https://api.apikeeper.dev/v1/ping \
+  -H "Authorization: Bearer sk_live_your_key_here"
+
+# 200 OK
+{
+  "message": "pong",
+  "key_id": "29ff8698-4835-...",
+  "plan": "free",
+  "over_quota_billable": false
+}</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">// endpoints</span>
+      <h2>Reference</h2>
+      <p>Everything below is live against a real server today. Match data endpoints will be documented here as they ship.</p>
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>Method</th><th>Path</th><th>Scope</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="mono">GET</td><td class="mono">/health</td><td class="mono">—</td><td><span class="badge active">Live</span></td></tr>
+        <tr><td class="mono">POST</td><td class="mono">/dashboard/keys</td><td class="mono">user auth</td><td><span class="badge active">Live</span></td></tr>
+        <tr><td class="mono">GET</td><td class="mono">/dashboard/keys</td><td class="mono">user auth</td><td><span class="badge active">Live</span></td></tr>
+        <tr><td class="mono">DELETE</td><td class="mono">/dashboard/keys/:id</td><td class="mono">user auth</td><td><span class="badge active">Live</span></td></tr>
+        <tr><td class="mono">POST</td><td class="mono">/dashboard/keys/:id/rotate</td><td class="mono">user auth</td><td><span class="badge active">Live</span></td></tr>
+        <tr><td class="mono">GET</td><td class="mono">/dashboard/usage</td><td class="mono">user auth</td><td><span class="badge active">Live</span></td></tr>
+        <tr><td class="mono">GET</td><td class="mono">/v1/ping</td><td class="mono">read</td><td><span class="badge active">Live</span></td></tr>
+        <tr><td class="mono">POST</td><td class="mono">/v1/widgets</td><td class="mono">write</td><td><span class="badge active">Live</span></td></tr>
+        <tr><td class="mono">GET</td><td class="mono">/v1/fixtures</td><td class="mono">read</td><td><span class="badge soon">Coming soon</span></td></tr>
+        <tr><td class="mono">GET</td><td class="mono">/v1/livescores</td><td class="mono">read</td><td><span class="badge soon">Coming soon</span></td></tr>
+        <tr><td class="mono">GET</td><td class="mono">/v1/standings</td><td class="mono">read</td><td><span class="badge soon">Coming soon</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">// errors</span>
+      <h2>Error responses</h2>
+    </div>
+    <div class="grid-2">
+      <pre><code>// 401 — missing or invalid key
+{ "error": "invalid_api_key" }
+
+// 403 — key lacks required scope
+{ "error": "insufficient_scope", "required": "write" }</code></pre>
+      <pre><code>// 429 — rate limit exceeded
+{ "error": "rate_limit_exceeded", "retry_after_ms": 4200 }
+
+// 402 — monthly quota exceeded
+{ "error": "quota_exceeded", "used": 1000, "quota": 1000 }</code></pre>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 Apikeeper</span>
+    <span class="mono">Built on Apikeeper's own API</span>
+  </div>
+</footer>
+
+</body>
+</html>

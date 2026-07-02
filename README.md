@@ -1,98 +1,65 @@
-# API Key System
+# Apikeeper website
 
-A self-hosted API key management system with per-key rate limiting and
-usage-based billing, built on Node/Express, PostgreSQL, and Redis.
+This is the public-facing site for your API key system: homepage, docs,
+pricing, signup, and a dashboard — all wired up to the real `apikeeper`
+backend you already built and deployed.
 
-## How it fits together
+## How it connects to your backend
 
-- **Postgres** is the source of truth: keys (hashed), plans, and durable
-  monthly usage counters that drive billing.
-- **Redis** only handles the short-lived, high-frequency sliding-window rate
-  limit (requests/minute). It’s disposable — losing it just resets the
-  rate-limit window, it never affects billing.
-- **Stripe** (optional) is used to sync metered usage for invoicing, via
-  `reportUsageToStripe()` — call this from a periodic job (cron/hourly), not
-  per-request.
+This site is just static HTML/CSS/JS — it doesn’t run a server of its own.
+Every page that needs real data (signup, dashboard) calls your `apikeeper`
+backend directly from the browser, using the address you enter into the
+“API base URL” field on those pages. That address is saved in the browser
+(`localStorage`), so you only need to enter it once per browser.
 
-## Setup
+- **While testing in Codespaces:** use the forwarded URL for port 3000
+  (e.g. `https://your-codespace-name-3000.app.github.dev`).
+- **Once deployed for real:** use your real domain (e.g.
+  `https://api.yourdomain.com`).
 
-```bash
-cp .env.example .env       # fill in real values
-docker compose up -d       # starts Postgres + Redis locally
-npm install
-npm run migrate            # creates tables + seeds default plans
-npm start
-```
-
-## Managing keys (dashboard endpoints)
-
-These are meant to sit behind your app’s normal login. The `x-user-email`
-header is a placeholder — replace `src/middleware/userAuth.js` with real
-session/JWT auth before shipping.
-
-```bash
-# Create a key
-curl -X POST http://localhost:3000/dashboard/keys \
-  -H "x-user-email: dev@example.com" \
-  -H "Content-Type: application/json" \
-  -d '{"name": "Production key", "scopes": ["read", "write"]}'
-# -> { "id": "...", "key": "sk_live_XXXXXXXX...", ... }  <-- shown once, save it
-
-# List keys (raw key is never shown again, only the prefix)
-curl http://localhost:3000/dashboard/keys -H "x-user-email: dev@example.com"
-
-# Revoke a key
-curl -X DELETE http://localhost:3000/dashboard/keys/<id> -H "x-user-email: dev@example.com"
-
-# Check usage + estimated overage cost this billing period
-curl http://localhost:3000/dashboard/usage -H "x-user-email: dev@example.com"
-```
-
-## Calling the protected API (what your consumers do)
-
-```bash
-curl http://localhost:3000/v1/ping \
-  -H "Authorization: Bearer sk_live_XXXXXXXX..."
-```
-
-Every response includes rate-limit and usage headers:
+## Files
 
 ```
-X-RateLimit-Limit: 300
-X-RateLimit-Remaining: 299
-X-Usage-Period: 2026-07
-X-Usage-Count: 4821
-X-Usage-Quota: 50000
+index.html      Homepage
+docs.html       API reference (only documents endpoints that actually exist)
+pricing.html    Plans, matching what's seeded in your database
+signup.html     Real signup form — creates a real key via your backend
+dashboard.html  Lists real keys + usage, lets you revoke/create keys
+css/style.css   Shared design system
+js/api.js       Talks to your backend (base URL + fetch helpers)
 ```
 
-## Plans (edit in `src/db/schema.sql` or the `plans` table directly)
+## Required backend change
 
-|Plan      |Quota/mo |Rate limit|Price  |Overage         |
-|----------|---------|----------|-------|----------------|
-|free      |1,000    |30 rpm    |$0     |hard-capped     |
-|pro       |50,000   |300 rpm   |$49/mo |$2.00 / 1k extra|
-|enterprise|1,000,000|2000 rpm  |$499/mo|$1.00 / 1k extra|
-
-Plans with `overage_cents_per_1k = 0` are hard-capped: requests are rejected
-with `402 quota_exceeded` once the quota is hit. Plans with a nonzero
-overage price let requests through past quota and bill for the extra usage.
-
-## Adding a new protected endpoint
+Your backend needs CORS enabled so a browser on a different address (this
+website) is allowed to call it. This has already been added to your
+`src/server.js` — look for the comment `// CORS:` near the top. If you’re
+working from the version already on GitHub, add this block right after
+`app.use(express.json());`:
 
 ```js
-import { apiKeyAuth } from './middleware/apiKeyAuth.js';
-
-router.get('/your-endpoint', apiKeyAuth(['read']), (req, res) => {
-  // req.apiKey = { id, userId, planId, scopes, overQuota }
-  res.json({ ok: true });
+app.use((req, res, next) => {
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'GET,POST,DELETE,OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-user-email');
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
 });
 ```
 
-## Security notes
+Without this, signup.html and dashboard.html will fail with a CORS error
+in the browser console even though the backend itself is working fine.
 
-- Raw keys are never stored — only a SHA-256 hash, same as password storage.
-  If the database leaks, keys can’t be reconstructed from it.
-- Show the raw key to the user exactly once, at creation/rotation time.
-- Use `sk_live_...` / `sk_test_...` prefixes if you want separate
-  test/production keys — just pass the env to `generateApiKey()`.
-- Put this behind HTTPS. An API key sent over plain HTTP is as good as public.
+## Trying it locally
+
+Open `index.html` directly in a browser, or serve the folder with any
+static file server. Go to the signup page, paste in your backend’s URL,
+create a key, then go to the dashboard and load it with the same email.
+
+## What’s not real yet
+
+The football match data shown in the ticker and docs is illustrative —
+your backend doesn’t have football data endpoints yet (`/v1/fixtures`,
+`/v1/livescores`, `/v1/standings` are marked “Coming soon” in docs.html
+for this reason). Everything else — signup, key creation, revocation,
+usage — is fully real and calls your live server.

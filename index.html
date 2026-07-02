@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apikeeper — Football data API for developers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="brand"><span class="dot"></span> Apikeeper</a>
+    <ul class="nav-links">
+      <li><a href="index.html" aria-current="page">Home</a></li>
+      <li><a href="docs.html">Docs</a></li>
+      <li><a href="pricing.html">Pricing</a></li>
+      <li><a href="dashboard.html">Dashboard</a></li>
+    </ul>
+    <div class="nav-cta">
+      <a href="signup.html" class="btn btn-amber">Get API key</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="eyebrow">// football data, one key away</span>
+    <h1>Every match.<br>One key.</h1>
+    <p class="lede">A single API key that authenticates every request you make to Apikeeper — with rate limits, usage tracking, and billing built in from the first call.</p>
+    <div class="hero-actions">
+      <a href="signup.html" class="btn btn-amber">Get your free API key</a>
+      <a href="docs.html" class="btn btn-ghost">Read the docs</a>
+    </div>
+  </div>
+</header>
+
+<div class="ticker" aria-label="Sample live event feed">
+  <div class="ticker-track">
+    <span class="ticker-item"><span class="live">LIVE</span> 67' GOAL — Home 2:1 Away</span>
+    <span class="ticker-item"><span class="k">POST</span> /dashboard/keys → 201 Created</span>
+    <span class="ticker-item">83' Yellow card — #14 midfield</span>
+    <span class="ticker-item"><span class="k">GET</span> /v1/ping → 200 OK · 41ms</span>
+    <span class="ticker-item"><span class="live">LIVE</span> 12' GOAL — Away 0:1 Home</span>
+    <span class="ticker-item">Key sk_live_9c2f… rate limit: 298/300</span>
+    <span class="ticker-item">90+2' Full time — Home 3:1 Away</span>
+    <span class="ticker-item"><span class="k">GET</span> /dashboard/usage → 200 OK</span>
+    <!-- duplicate set for seamless loop -->
+    <span class="ticker-item"><span class="live">LIVE</span> 67' GOAL — Home 2:1 Away</span>
+    <span class="ticker-item"><span class="k">POST</span> /dashboard/keys → 201 Created</span>
+    <span class="ticker-item">83' Yellow card — #14 midfield</span>
+    <span class="ticker-item"><span class="k">GET</span> /v1/ping → 200 OK · 41ms</span>
+    <span class="ticker-item"><span class="live">LIVE</span> 12' GOAL — Away 0:1 Home</span>
+    <span class="ticker-item">Key sk_live_9c2f… rate limit: 298/300</span>
+    <span class="ticker-item">90+2' Full time — Home 3:1 Away</span>
+    <span class="ticker-item"><span class="k">GET</span> /dashboard/usage → 200 OK</span>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">// what you get</span>
+      <h2>Built like the providers you already trust</h2>
+      <p>Every key is hashed at rest, scoped to specific permissions, rate limited per minute, and metered for billing — the same fundamentals powering the football data APIs you've used before.</p>
+    </div>
+    <div class="grid-3">
+      <div class="card">
+        <span class="num">01</span>
+        <h3>Scoped keys</h3>
+        <p>Every key carries explicit read/write/admin scopes, so you only grant the access an integration actually needs.</p>
+      </div>
+      <div class="card">
+        <span class="num">02</span>
+        <h3>Rate limiting</h3>
+        <p>Per-key, per-minute limits enforced on every request, with live remaining-quota headers on every response.</p>
+      </div>
+      <div class="card">
+        <span class="num">03</span>
+        <h3>Usage-based billing</h3>
+        <p>Every request is counted against your monthly plan, with clean overage pricing once you outgrow the free tier.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">// roadmap</span>
+      <h2>Data coverage</h2>
+      <p>The key system, rate limiting, and billing are live today. Match data endpoints are rolling out next.</p>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Available now <span class="badge active">Live</span></h3>
+        <p>Key creation, revocation, rotation, scoped auth, rate limiting, and usage tracking — all working against a real database.</p>
+      </div>
+      <div class="card">
+        <h3>Coming soon <span class="badge soon">In progress</span></h3>
+        <p>Fixtures, live scores, standings, and team data — served through the same keys and limits you already have.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 Apikeeper</span>
+    <span class="mono">Built on Apikeeper's own API</span>
+  </div>
+</footer>
+
+</body>
+</html>

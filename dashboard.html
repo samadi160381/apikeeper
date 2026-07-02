@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Apikeeper</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="brand"><span class="dot"></span> Apikeeper</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="docs.html">Docs</a></li>
+      <li><a href="pricing.html">Pricing</a></li>
+      <li><a href="dashboard.html" aria-current="page">Dashboard</a></li>
+    </ul>
+    <div class="nav-cta">
+      <a href="signup.html" class="btn btn-amber">Get API key</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" style="padding: 3rem 0 2rem;">
+  <div class="wrap">
+    <span class="eyebrow">// dashboard</span>
+    <h1 style="font-size: clamp(2.2rem, 4.5vw, 3.4rem);">Your keys</h1>
+    <p class="lede">Manage keys, watch usage, and see where you stand against your plan.</p>
+  </div>
+</header>
+
+<section style="padding-top: 0;">
+  <div class="wrap">
+    <div class="panel wide">
+      <div class="field">
+        <label for="base-url">API base URL</label>
+        <input type="url" id="base-url" placeholder="https://your-server-url.app.github.dev">
+      </div>
+      <div class="field">
+        <label for="email">Signed in as</label>
+        <input type="email" id="email" placeholder="you@example.com">
+      </div>
+      <button class="btn btn-amber" id="load">Load my dashboard</button>
+      <div id="load-msg"></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">// usage this period</span>
+      <h2>Standing</h2>
+    </div>
+    <div id="usage-cards" class="grid-3"></div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">// keys</span>
+      <h2>API keys</h2>
+    </div>
+    <table id="keys-table">
+      <thead>
+        <tr><th>Name</th><th>Key</th><th>Scopes</th><th>Status</th><th>Created</th><th></th></tr>
+      </thead>
+      <tbody id="keys-body">
+        <tr><td colspan="6" class="mono" style="color: var(--chalk-dim);">Load your dashboard above to see your keys.</td></tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top: 2rem;">
+      <h3>Create another key</h3>
+      <form id="create-form" style="max-width: 420px;">
+        <div class="field">
+          <label for="keyname">Key name</label>
+          <input type="text" id="keyname" placeholder="e.g. Staging server">
+        </div>
+        <button type="submit" class="btn btn-ghost">Create key</button>
+      </form>
+      <div id="create-msg"></div>
+      <div id="key-output"></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 Apikeeper</span>
+    <span class="mono">Built on Apikeeper's own API</span>
+  </div>
+</footer>
+
+<script src="js/api.js"></script>
+<script>
+  const baseUrlInput = document.getElementById('base-url');
+  const emailInput = document.getElementById('email');
+
+  baseUrlInput.value = Apikeeper.getBaseUrl();
+  emailInput.value = Apikeeper.getEmail();
+
+  function fmtDate(iso) {
+    return new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+  }
+
+  async function refreshAll() {
+    const email = emailInput.value.trim();
+    const loadMsg = document.getElementById('load-msg');
+    loadMsg.innerHTML = '';
+
+    if (!email) { loadMsg.innerHTML = '<div class="msg error">Enter your email.</div>'; return; }
+    Apikeeper.setBaseUrl(baseUrlInput.value);
+    Apikeeper.setEmail(email);
+
+    try {
+      const [keys, usage] = await Promise.all([
+        Apikeeper.listKeys(email),
+        Apikeeper.getUsage(email),
+      ]);
+      renderKeys(keys);
+      renderUsage(usage);
+      loadMsg.innerHTML = '<div class="msg success">Loaded.</div>';
+    } catch (err) {
+      loadMsg.innerHTML = `<div class="msg error">${err.message}</div>`;
+    }
+  }
+
+  function renderKeys(keys) {
+    const body = document.getElementById('keys-body');
+    if (!keys.length) {
+      body.innerHTML = '<tr><td colspan="6" class="mono" style="color: var(--chalk-dim);">No keys yet.</td></tr>';
+      return;
+    }
+    body.innerHTML = keys.map(k => `
+      <tr>
+        <td>${k.name}</td>
+        <td class="mono">${k.key_prefix}…</td>
+        <td class="mono">${k.scopes.join(', ')}</td>
+        <td><span class="badge ${k.status}">${k.status}</span></td>
+        <td>${fmtDate(k.created_at)}</td>
+        <td>${k.status === 'active' ? `<button class="btn btn-ghost" data-revoke="${k.id}" style="padding: 0.35em 0.9em; font-size: 0.8rem;">Revoke</button>` : ''}</td>
+      </tr>
+    `).join('');
+
+    body.querySelectorAll('[data-revoke]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        try {
+          await Apikeeper.revokeKey(emailInput.value.trim(), btn.dataset.revoke);
+          refreshAll();
+        } catch (err) {
+          alert(err.message);
+        }
+      });
+    });
+  }
+
+  function renderUsage(usage) {
+    const el = document.getElementById('usage-cards');
+    if (!usage.keys.length) {
+      el.innerHTML = '<p>No usage yet this period.</p>';
+      return;
+    }
+    el.innerHTML = usage.keys.map(k => `
+      <div class="card">
+        <h3>${k.name}</h3>
+        <span class="num">${k.used} / ${k.monthly_quota}</span>
+        <p class="mono" style="font-size: 0.82rem;">${usage.period} · overage: $${(k.overage_cost_cents / 100).toFixed(2)}</p>
+      </div>
+    `).join('');
+  }
+
+  document.getElementById('load').addEventListener('click', refreshAll);
+
+  document.getElementById('create-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('create-msg');
+    const output = document.getElementById('key-output');
+    msg.innerHTML = '';
+    output.innerHTML = '';
+    const email = emailInput.value.trim();
+    const name = document.getElementById('keyname').value.trim() || 'Default key';
+
+    try {
+      const result = await Apikeeper.createKey(email, { name, scopes: ['read', 'write'] });
+      msg.innerHTML = '<div class="msg success">Key created. Copy it now — it will not be shown again.</div>';
+      output.innerHTML = `<div class="key-reveal">${result.key}</div>`;
+      refreshAll();
+    } catch (err) {
+      msg.innerHTML = `<div class="msg error">${err.message}</div>`;
+    }
+  });
+
+  if (Apikeeper.getBaseUrl() && Apikeeper.getEmail()) refreshAll();
+</script>
+
+</body>
+</html>
