@@ -7,6 +7,17 @@ import { exampleRouter } from './routes/example.js';
 const app = express();
 app.use(express.json());
 
+// CORS: allows the Apikeeper website (a separate origin) to call this API
+// from the browser. Locked to GET/POST/DELETE and the two custom headers
+// the dashboard/signup pages actually send.
+app.use((req, res, next) => {
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'GET,POST,DELETE,OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-user-email');
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
+
 // --- Dashboard endpoints: your users manage their own keys and see usage. ---
 // Auth here is the placeholder `x-user-email` header -- swap in real session/JWT auth.
 app.use('/dashboard/keys', keysRouter);
